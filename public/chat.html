@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div id="welcomeMessage" class="welcome-message">
+            <p>Hello, welcome to the chat room! To send a message, join one of the rooms in dropdown menu.</p>
+        </div>
+
+        <div class="room-select">
+            <select id="roomSelect">
+                <option value="devops">DevOps</option>
+                <option value="sports">Sports</option>
+            </select>
+            <button onclick="joinRoom()">Join Room</button>
+            <button onclick="leaveRoom()">Leave Room</button>
+        </div>
+
+        <div id="chatBox"></div>
+
+        <div class="message-input">
+            <input type="text" id="messageInput" placeholder="Type a message" onkeyup="notifyTyping()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <button onclick="logout()" class="logout-btn">Logout</button>
+        
+        <p id="typingIndicator"></p>
+    </div>
+
+    <script>
+        const socket = io();
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        function showWelcomeMessage() {
+            document.getElementById("welcomeMessage").style.display = 'block';
+        }
+
+
+        function displayRoomMessage(message) {
+            const chatBox = document.getElementById("chatBox");
+            const roomMessage = `<div class="room-message">${message}</div>`;
+            chatBox.innerHTML += roomMessage;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function joinRoom() {
+            const room = document.getElementById("roomSelect").value;
+            socket.emit("joinRoom", room);
+            document.getElementById("welcomeMessage").style.display = 'none'; 
+            displayRoomMessage(`You have joined the ${room} room.`);
+        }
+
+        function leaveRoom() {
+            const room = document.getElementById("roomSelect").value;
+            socket.emit("leaveRoom", room);
+            displayRoomMessage(`You have left the ${room} room.`);
+        }
+
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value;
+            const room = document.getElementById("roomSelect").value;
+            socket.emit("message", { message, room });
+            document.getElementById("messageInput").value = ''; 
+        }
+
+        function notifyTyping() {
+            const room = document.getElementById("roomSelect").value;
+            socket.emit("typing", { username: "User", room });
+        }
+
+        socket.on("message", (data) => {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML += `<div class="chat-message">${data.message}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight; 
+        });
+
+        socket.on("typing", (username) => {
+            document.getElementById("typingIndicator").innerText = `${username} is typing...`;
+            setTimeout(() => document.getElementById("typingIndicator").innerText = "", 1000);
+        });
+
+        function logout() {
+            localStorage.removeItem("token");
+            window.location.href = "login.html";
+        }
+
+        showWelcomeMessage();
+    </script>
+</body>
+</html>

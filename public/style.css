@@ -56,7 +56,7 @@ button:hover {
     background-color: #e53935;
 }
 
-/* Chat page styles */
+
 #chatBox {
     max-height: 400px;
     overflow-y: scroll;
@@ -90,7 +90,6 @@ button:hover {
     align-self: flex-end;
 }
 
-/* Room action messages */
 .room-message {
     background-color: #e7e7e7;
     color: #333;
